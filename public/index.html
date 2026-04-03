@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack Pro — Тренировки, питание и статистика</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --secondary: #8b5cf6;
+            --bg: #04040a;
+            --surface: #0e0e1a;
+            --surface2: #15151f;
+            --border: rgba(99,102,241,0.15);
+            --text: #f0f0ff;
+            --text-muted: #7878a0;
+            --glow: rgba(99,102,241,0.35);
+            --success: #10b981;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ── Noise texture overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ── Ambient orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb-1 { width: 600px; height: 600px; background: rgba(99,102,241,0.18); top: -200px; left: -150px; animation: drift1 18s ease-in-out infinite; }
+        .orb-2 { width: 400px; height: 400px; background: rgba(139,92,246,0.14); top: 20%; right: -100px; animation: drift2 22s ease-in-out infinite; }
+        .orb-3 { width: 350px; height: 350px; background: rgba(16,185,129,0.08); bottom: 10%; left: 10%; animation: drift3 26s ease-in-out infinite; }
+
+        @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
+        @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-40px,60px)} }
+        @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(50px,-30px)} }
+
+        /* ── Layout ── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        /* ── Navbar ── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            background: rgba(4,4,10,0.7);
+            transition: background 0.3s;
+        }
+        nav .inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-cta {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.25s;
+            box-shadow: 0 0 20px var(--glow);
+        }
+        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 0 32px var(--glow); }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+        }
+        .hero-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            width: 100%;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99,102,241,0.12);
+            border: 1px solid rgba(99,102,241,0.3);
+            color: var(--primary-light);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            animation: fadeUp 0.6s ease both;
+        }
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(36px, 5vw, 58px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+        .hero-title .accent {
+            background: linear-gradient(135deg, var(--primary-light) 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-sub {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+        .hero-free {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--success);
+            margin-bottom: 36px;
+            animation: fadeUp 0.6s 0.3s ease both;
+        }
+        .hero-free::before { content: '✦'; }
+        .hero-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.6s 0.4s ease both;
+        }
+        .btn-primary-lg {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 32px var(--glow);
+        }
+        .btn-primary-lg:hover { transform: translateY(-2px); box-shadow: 0 12px 40px var(--glow); }
+        .btn-secondary-lg {
+            padding: 16px 32px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text-muted);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-secondary-lg:hover { border-color: var(--primary); color: var(--text); }
+
+        /* ── Auth card (hero right side) ── */
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 36px 32px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 40px 80px rgba(0,0,0,0.5);
+            position: relative;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 29px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.3), transparent 60%, rgba(139,92,246,0.2));
+            z-index: -1;
+        }
+        .auth-card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .auth-card-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+        .auth-tabs-lp {
+            display: flex;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+            margin-bottom: 22px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .auth-tab-lp {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .auth-tab-lp.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 2px 12px var(--glow);
+        }
+        .auth-error-lp {
+            display: none;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #f87171;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 14px;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-error-lp.visible { display: flex; }
+        .auth-error-lp.visible::before { content: '⚠️'; flex-shrink: 0; }
+        .field-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .field-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .field-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-muted);
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .field-toggle:hover { color: var(--text); }
+        .lp-input {
+            width: 100%;
+            padding: 13px 14px 13px 40px;
+            background: rgba(255,255,255,0.05) !important;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: var(--text) !important;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -webkit-appearance: none;
+            -webkit-text-fill-color: var(--text) !important;
+            caret-color: var(--primary-light);
+        }
+        .lp-input[type="password"] { padding-right: 44px; }
+        .lp-input:-webkit-autofill,
+        .lp-input:-webkit-autofill:hover,
+        .lp-input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 100px #15151f inset !important;
+            -webkit-text-fill-color: var(--text) !important;
+        }
+        .lp-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--glow); }
+        .lp-input::placeholder { color: #4a4a6a; }
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
+            transition: all 0.25s;
+            box-shadow: 0 4px 20px var(--glow);
+        }
+        .btn-auth:hover { transform: translateY(-1px); box-shadow: 0 8px 28px var(--glow); }
+        .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* ── Tagline ── */
+        .tagline-section {
+            padding: 80px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .tagline-text {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(22px, 4vw, 38px);
+            font-weight: 700;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+        .tagline-text strong { color: var(--text); }
+
+        /* ── Features ── */
+        .features-section { padding: 80px 0; }
+        .section-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--primary-light);
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            margin-bottom: 60px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-4px); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 18px;
+            display: block;
+            filter: drop-shadow(0 0 12px var(--glow));
+        }
+        .feature-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+        /* Image placeholder inside feature card */
+        .feature-img {
+            margin-top: 20px;
+            height: 100px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.05));
+            border: 1px dashed rgba(99,102,241,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(99,102,241,0.35);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* ── Simplicity section ── */
+        .simple-section {
+            padding: 80px 0;
+        }
+        .simple-inner {
+            background: var(--surface2);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 32px;
+            padding: 64px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .simple-inner::after {
+            content: '';
+            position: absolute;
+            right: -100px; top: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .simple-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 0 16px var(--glow);
+        }
+        .step-text { font-size: 15px; color: var(--text-muted); padding-top: 6px; line-height: 1.6; }
+        .step-text strong { color: var(--text); }
+        .simple-img {
+            height: 280px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.06));
+            border: 1px dashed rgba(99,102,241,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(99,102,241,0.3);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Free section ── */
+        .free-section { padding: 80px 0; }
+        .free-inner {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%);
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 32px;
+            padding: 72px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .free-inner::before {
+            content: '';
+            position: absolute;
+            top: -80px; left: 50%; transform: translateX(-50%);
+            width: 500px; height: 300px;
+            background: radial-gradient(ellipse, rgba(99,102,241,0.2), transparent 70%);
+            pointer-events: none;
+        }
+        .free-icon { font-size: 52px; margin-bottom: 20px; display: block; filter: drop-shadow(0 0 20px rgba(16,185,129,0.5)); }
+        .free-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(26px, 4vw, 40px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .free-desc { font-size: 17px; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.7; }
+        .free-badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 32px;
+            flex-wrap: wrap;
+        }
+        .free-badge {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(16,185,129,0.3);
+            background: rgba(16,185,129,0.08);
+            color: var(--success);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ── Donate section ── */
+        .donate-section { padding: 80px 0 120px; }
+        .donate-inner {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 32px;
+            padding: 64px 48px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 60px;
+            align-items: center;
+        }
+        .donate-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(24px, 3vw, 36px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .donate-desc { font-size: 16px; color: var(--text-muted); line-height: 1.7; max-width: 500px; }
+        .donate-desc + .donate-desc { margin-top: 12px; }
+        .btn-donate {
+            padding: 18px 36px;
+            background: linear-gradient(135deg, #ec4899, #f59e0b);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            transition: all 0.3s;
+            box-shadow: 0 8px 32px rgba(236,72,153,0.3);
+        }
+        .btn-donate:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 40px rgba(236,72,153,0.4); }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding: 32px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+        footer span { color: var(--primary-light); }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .simple-inner { grid-template-columns: 1fr; padding: 40px 28px; }
+            .simple-img { display: none; }
+            .donate-inner { grid-template-columns: 1fr; text-align: center; }
+            .btn-donate { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 600px) {
+            .free-inner { padding: 48px 24px; }
+            .hero-btns { flex-direction: column; }
+            .btn-primary-lg, .btn-secondary-lg { justify-content: center; }
+        }
+        /* ── Captcha ── */
+        .captcha-question-label {
+            position: absolute;
+            left: 14px; top: 50%; transform: translateY(-50%);
+            font-size: 14px; font-weight: 700;
+            color: var(--text);
+            pointer-events: none; z-index: 2;
+            white-space: nowrap;
+        }
+        .captcha-answer-input {
+            padding-left: 130px !important;
+            font-weight: 700 !important;
+        }
+        .captcha-field.error input {
+            border-color: rgba(239,68,68,0.6) !important;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.15) !important;
+            animation: lp-shake 0.35s ease;
+        }
+        @keyframes lp-shake {
+            0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)}
+        }
+    </style>
+</head>
+<body>
+
+<!-- Ambient background orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Navbar -->
+<nav>
+    <div class="inner">
+        <div class="nav-logo">💪 FitTrack Pro</div>
+        <button class="nav-cta" onclick="scrollToAuth()">Открыть приложение →</button>
+    </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-inner">
+            <!-- Left: copy -->
+            <div class="hero-copy">
+                <div class="hero-badge">✦ Бесплатно навсегда</div>
+                <h1 class="hero-title">
+                    FitTrack Pro —<br>
+                    твой контроль<br>
+                    над <span class="accent">прогрессом</span>
+                </h1>
+                <p class="hero-sub">Тренировки, питание и статистика — в одном месте.<br>Просто. Удобно. Без лишнего.</p>
+                <div class="hero-free">Бесплатно. Навсегда. Без подписок, без скрытых функций, без ограничений.</div>
+                <div class="hero-btns">
+                    <button class="btn-primary-lg" onclick="scrollToAuth()">🚀 Начать бесплатно</button>
+                    <a href="#features" class="btn-secondary-lg">Узнать больше ↓</a>
+                </div>
+            </div>
+
+            <!-- Right: auth card -->
+            <div class="auth-card">
+                <div class="auth-card-title">Войти в FitTrack Pro</div>
+                <div class="auth-card-sub">Нет аккаунта? Зарегистрируйтесь — это бесплатно</div>
+
+                <div class="auth-tabs-lp">
+                    <button class="auth-tab-lp active" id="lp-tab-login" onclick="lpShowTab('login')">Войти</button>
+                    <button class="auth-tab-lp" id="lp-tab-reg" onclick="lpShowTab('register')">Регистрация</button>
+                </div>
+
+                <div id="lp-auth-error" class="auth-error-lp"></div>
+
+                <!-- Login -->
+                <div id="lp-form-login">
+                    <div class="field-wrap">
+                        <span class="field-icon">👤</span>
+                        <input class="lp-input" type="text" id="lp-login-username" placeholder="Логин" autocomplete="username" spellcheck="false">
+                    </div>
+                    <div class="field-wrap">
+                        <span class="field-icon">🔒</span>
+                        <input class="lp-input" type="password" id="lp-login-password" placeholder="Пароль"
+                               autocomplete="current-password" onkeydown="if(event.key==='Enter') lpDoLogin()">
+                        <button class="field-toggle" type="button" onclick="lpTogglePwd('lp-login-password',this)" tabindex="-1">👁️</button>
+                    </div>
+                    <div class="field-wrap auth-field captcha-field" id="captcha-login-wrap" style="position:relative;">
+                        <span class="captcha-question-label" id="captcha-login-q"></span>
+                        <input class="lp-input captcha-answer-input" type="number" id="captcha-login-a"
+                               placeholder="= ?" inputmode="numeric" onkeydown="if(event.key==='Enter') lpDoLogin()"
+                               style="padding-left:14px;text-align:left;">
+                    </div>
+                    <button class="btn-auth" id="lp-login-btn" onclick="lpDoLogin()">🚀 Войти</button>
+                </div>
+
+                <!-- Register -->
+                <div id="lp-form-register" style="display:none;">
+                    <div class="field-wrap">
+                        <span class="field-icon">👤</span>
+                        <input class="lp-input" type="text" id="lp-reg-username" placeholder="Логин (мин. 3 символа)" autocomplete="username" spellcheck="false">
+                    </div>
+                    <div class="field-wrap">
+                        <span class="field-icon">🔒</span>
+                        <input class="lp-input" type="password" id="lp-reg-password" placeholder="Пароль (мин. 4 символа)"
+                               autocomplete="new-password" onkeydown="if(event.key==='Enter') lpDoRegister()">
+                        <button class="field-toggle" type="button" onclick="lpTogglePwd('lp-reg-password',this)" tabindex="-1">👁️</button>
+                    </div>
+                    <div class="field-wrap auth-field captcha-field" id="captcha-reg-wrap" style="position:relative;">
+                        <span class="captcha-question-label" id="captcha-reg-q"></span>
+                        <input class="lp-input captcha-answer-input" type="number" id="captcha-reg-a"
+                               placeholder="= ?" inputmode="numeric" onkeydown="if(event.key==='Enter') lpDoRegister()"
+                               style="padding-left:14px;text-align:left;">
+                    </div>
+                    <button class="btn-auth" id="lp-reg-btn" onclick="lpDoRegister()">✨ Создать аккаунт</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ TAGLINE ══ -->
+<section class="tagline-section">
+    <div class="container">
+        <p class="tagline-text reveal">
+            <strong>Планируй тренировки, отслеживай питание</strong> и смотри свой прогресс — каждый день.
+        </p>
+    </div>
+</section>
+
+<!-- ══ FEATURES ══ -->
+<section class="features-section" id="features">
+    <div class="container">
+        <div class="section-label reveal">Возможности</div>
+        <h2 class="section-title reveal">Всё что нужно<br>для результата</h2>
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <span class="feature-icon">📅</span>
+                <div class="feature-title">Планируй тренировки</div>
+                <p class="feature-desc">Создавай программы и веди расписание в удобном календаре. Добавляй упражнения, подходы и веса.</p>
+                <div class="feature-img">СКРИНШОТ КАЛЕНДАРЯ</div>
+            </div>
+            <div class="feature-card reveal">
+                <span class="feature-icon">🍎</span>
+                <div class="feature-title">Контролируй питание</div>
+                <p class="feature-desc">Добавляй приёмы пищи и следи за калориями. Автоматический расчёт суточной нормы по твоим параметрам.</p>
+                <div class="feature-img">СКРИНШОТ ПИТАНИЯ</div>
+            </div>
+            <div class="feature-card reveal">
+                <span class="feature-icon">📊</span>
+                <div class="feature-title">Отслеживай прогресс</div>
+                <p class="feature-desc">Графики, статистика и реальные результаты. Видь рост нагрузки и свою динамику за любой период.</p>
+                <div class="feature-img">СКРИНШОТ ГРАФИКОВ</div>
+            </div>
+            <div class="feature-card reveal">
+                <span class="feature-icon">☁️</span>
+                <div class="feature-title">Сохраняй данные</div>
+                <p class="feature-desc">Все данные синхронизируются и всегда под рукой — на любом устройстве, в любом браузере.</p>
+                <div class="feature-img">ИКОНКА СИНХРОНИЗАЦИИ</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ SIMPLICITY ══ -->
+<section class="simple-section">
+    <div class="container">
+        <div class="simple-inner reveal">
+            <div>
+                <div class="section-label">Простота</div>
+                <h2 class="section-title" style="margin-bottom: 32px;">Без сложных<br>настроек</h2>
+                <p style="color:var(--text-muted); font-size:16px; margin-bottom:36px; line-height:1.7;">
+                    Зашёл — и сразу начал тренироваться и отслеживать результат. Никакой лишней настройки.
+                </p>
+                <div class="simple-steps">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div class="step-text"><strong>Создай аккаунт</strong> — это бесплатно и займёт 10 секунд</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div class="step-text"><strong>Создай программу</strong> — добавь упражнения с весами и подходами</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-text"><strong>Тренируйся</strong> — отмечай подходы и следи за прогрессом</div>
+                    </div>
+                </div>
+            </div>
+            <div class="simple-img">СКРИНШОТ ПРИЛОЖЕНИЯ</div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ FREE ══ -->
+<section class="free-section">
+    <div class="container">
+        <div class="free-inner reveal">
+            <span class="free-icon">🎁</span>
+            <h2 class="free-title">Никаких подписок. Никогда.</h2>
+            <p class="free-desc">FitTrack Pro полностью бесплатен и таким останется. Все функции доступны сразу, без ограничений.</p>
+            <div class="free-badges">
+                <div class="free-badge">✓ Без подписки</div>
+                <div class="free-badge">✓ Без рекламы</div>
+                <div class="free-badge">✓ Без ограничений</div>
+                <div class="free-badge">✓ Навсегда</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ DONATE ══ -->
+<section class="donate-section">
+    <div class="container">
+        <div class="donate-inner reveal">
+            <div>
+                <h2 class="donate-title">❤️ Поддержи проект</h2>
+                <p class="donate-desc">Если тебе нравится FitTrack Pro и он помогает тебе становиться лучше — ты можешь поддержать развитие проекта донатом.</p>
+                <p class="donate-desc" style="margin-top:12px;">Это помогает добавлять новые функции, улучшать сервис и делать его ещё удобнее для всех.</p>
+            </div>
+            <a href="https://boosty.to" target="_blank" rel="noopener" class="btn-donate">
+                ❤️ Поддержать
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <p>© 2026 <span>FitTrack Pro</span> · Сделано с ❤️ для тех, кто хочет становиться лучше</p>
+    </div>
+</footer>
+
+<script>
+    const API = '/api';
+
+    // ── Scroll reveal ─────────────────────────────────────
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── Captcha ───────────────────────────────────────────
+    const captchas = { login: { a: 0, b: 0, op: '' }, reg: { a: 0, b: 0, op: '' } };
+
+    function genCaptcha(type) {
+        const ops = ['+', '+', '+', '−', '×'];
+        const op  = ops[Math.floor(Math.random() * ops.length)];
+        let a, b, answer;
+        if (op === '+')  { a = rnd(3,15); b = rnd(2,12); answer = a + b; }
+        if (op === '−')  { a = rnd(8,20); b = rnd(1, a); answer = a - b; }
+        if (op === '×')  { a = rnd(2, 9); b = rnd(2, 9); answer = a * b; }
+        captchas[type] = { answer };
+        document.getElementById(`captcha-${type}-q`).textContent = `${a} ${op} ${b} =`;
+        const input = document.getElementById(`captcha-${type}-a`);
+        input.value = '';
+        input.placeholder = '?';
+    }
+
+    function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function checkCaptcha(type) {
+        const input = document.getElementById(`captcha-${type}-a`);
+        const wrap  = document.getElementById(`captcha-${type}-wrap`);
+        if (parseInt(input.value) !== captchas[type].answer) {
+            wrap.classList.add('error');
+            setTimeout(() => wrap.classList.remove('error'), 400);
+            genCaptcha(type);
+            input.value = '';
+            input.focus();
+            return false;
+        }
+        return true;
+    }
+
+    // ── Auth helpers ──────────────────────────────────────
+    function lpShowTab(tab) {
+        const isLogin = tab === 'login';
+        document.getElementById('lp-form-login').style.display    = isLogin ? '' : 'none';
+        document.getElementById('lp-form-register').style.display = isLogin ? 'none' : '';
+        document.getElementById('lp-tab-login').classList.toggle('active',  isLogin);
+        document.getElementById('lp-tab-reg').classList.toggle('active',   !isLogin);
+        lpSetError('');
+        genCaptcha(isLogin ? 'login' : 'reg');
+    }
+
+    function lpSetError(msg) {
+        const el = document.getElementById('lp-auth-error');
+        el.textContent = msg;
+        el.classList.toggle('visible', !!msg);
+    }
+
+    function lpSetLoading(btnId, on) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = on;
+        btn.style.opacity = on ? '0.6' : '1';
+    }
+
+    function lpTogglePwd(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const hide  = input.type === 'password';
+        input.type  = hide ? 'text' : 'password';
+        btn.textContent = hide ? '🙈' : '👁️';
+    }
+
+    async function lpDoLogin() {
+        const username = document.getElementById('lp-login-username').value.trim();
+        const password = document.getElementById('lp-login-password').value;
+        lpSetError('');
+        if (!checkCaptcha('login')) { lpSetError('Неверный ответ на проверку — попробуйте ещё раз'); return; }
+        lpSetLoading('lp-login-btn', true);
+        try {
+            const res  = await fetch(API + '/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.error) { lpSetError(data.error); return; }
+            localStorage.setItem('ft_token',    data.token);
+            localStorage.setItem('ft_username', data.username);
+            window.location.href = 'app.html';
+        } catch { lpSetError('Не удалось подключиться к серверу'); }
+        finally  { lpSetLoading('lp-login-btn', false); }
+    }
+
+    async function lpDoRegister() {
+        const username = document.getElementById('lp-reg-username').value.trim();
+        const password = document.getElementById('lp-reg-password').value;
+        lpSetError('');
+        if (!checkCaptcha('reg')) { lpSetError('Неверный ответ на проверку — попробуйте ещё раз'); return; }
+        lpSetLoading('lp-reg-btn', true);
+        try {
+            const res  = await fetch(API + '/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.error) { lpSetError(data.error); return; }
+            localStorage.setItem('ft_token',    data.token);
+            localStorage.setItem('ft_username', data.username);
+            window.location.href = 'app.html';
+        } catch { lpSetError('Не удалось подключиться к серверу'); }
+        finally  { lpSetLoading('lp-reg-btn', false); }
+    }
+
+    // ── Auto-redirect if already logged in ───────────────
+    function scrollToAuth() {
+        const hero = document.querySelector('.hero');
+        if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    (function() {
+        const token = localStorage.getItem('ft_token');
+        if (token) { window.location.href = 'app.html'; return; }
+        // Init captchas
+        genCaptcha('login');
+        genCaptcha('reg');
+    })();
+</script>
+</body>
+</html>

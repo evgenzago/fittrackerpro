@@ -1,0 +1,385 @@
+{
+  "users": [
+    {
+      "id": 1774937138036,
+      "username": "Сигма",
+      "password": "$2a$10$5x.lqmtbbXwNcsgS5.2TXuKMD6bakk7t2xrQ.yKhlhtQ/qoNOM6mG",
+      "data": {
+        "programs": [],
+        "schedule": [
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          }
+        ],
+        "theme": "purple"
+      }
+    },
+    {
+      "id": 1774937169822,
+      "username": "СигмаБой",
+      "password": "$2a$10$ksIMRDcZSsWPOkAZyZqSs.ixlQz.WE6ERV0tfo2Oq7uWDP.XQIMCy",
+      "data": {
+        "programs": [],
+        "schedule": [
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          }
+        ],
+        "theme": "purple"
+      }
+    },
+    {
+      "id": 1774938303771,
+      "username": "Барбос",
+      "password": "$2a$10$YUVyNIucFM.N1NAABIiXzu1T5IhvFuPFqgbetBhSNRPiBFD0XXoDm",
+      "data": {
+        "programs": [
+          {
+            "id": 1775214181162,
+            "name": "123",
+            "icon": "💪",
+            "exercises": [
+              {
+                "name": "123",
+                "type": "strength",
+                "sets": [
+                  {
+                    "weight": "0",
+                    "reps": "0"
+                  },
+                  {
+                    "weight": "0",
+                    "reps": "0"
+                  },
+                  {
+                    "weight": "0",
+                    "reps": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "schedule": [
+          {
+            "workouts": [
+              {
+                "programId": 1775049114350,
+                "completedSets": [],
+                "setOverrides": {
+                  "0-0": {
+                    "weight": "99",
+                    "reps": "0"
+                  },
+                  "0-1": {
+                    "weight": "120",
+                    "reps": "15"
+                  },
+                  "1-0": {
+                    "weight": "150",
+                    "reps": "25"
+                  }
+                },
+                "exerciseSetCounts": [
+                  2,
+                  1
+                ]
+              }
+            ],
+            "meals": [
+              {
+                "name": "12",
+                "calories": "5500"
+              }
+            ]
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [
+              {
+                "programId": 1775214181162,
+                "completedSets": [],
+                "setOverrides": {
+                  "0-3": {
+                    "weight": "0",
+                    "reps": "0"
+                  }
+                },
+                "exerciseSetCounts": [
+                  4
+                ],
+                "finishedAt": null
+              }
+            ],
+            "meals": [
+              {
+                "name": "Сало",
+                "calories": "2000"
+              }
+            ]
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          }
+        ],
+        "theme": "pink",
+        "profile": {
+          "gender": "male",
+          "activity": 1.55,
+          "age": 30,
+          "height": 205,
+          "weight": 155,
+          "calorieLimit": null,
+          "lastWeeklyReset": "2026-03-29"
+        },
+        "history": [
+          {
+            "date": "2026-04-03",
+            "programId": 1775212912555,
+            "programName": "Жоска",
+            "exercises": [
+              {
+                "name": "Жим анусом",
+                "type": "strength",
+                "sets": [
+                  {
+                    "weight": 120,
+                    "reps": 15
+                  },
+                  {
+                    "weight": 120,
+                    "reps": 15
+                  },
+                  {
+                    "weight": 120,
+                    "reps": 15
+                  }
+                ]
+              },
+              {
+                "name": "Велосипед",
+                "type": "cardio",
+                "sets": [
+                  {
+                    "weight": 10,
+                    "reps": 4
+                  },
+                  {
+                    "weight": 10,
+                    "reps": 5
+                  },
+                  {
+                    "weight": 0,
+                    "reps": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 1775034127666,
+      "username": "Жопошник",
+      "password": "$2a$10$BkkYlXedKCefEu.8BonNAuVOG3hLYMkfA5jk.bqEQ/UPwXLQ7v/za",
+      "data": {
+        "programs": [
+          {
+            "id": 1775034158614,
+            "name": "Жопа",
+            "icon": "🏌️",
+            "exercises": [
+              {
+                "name": "Попа",
+                "sets": [
+                  {
+                    "weight": "99",
+                    "reps": "15"
+                  },
+                  {
+                    "weight": "100",
+                    "reps": "15"
+                  },
+                  {
+                    "weight": "100",
+                    "reps": "15"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "schedule": [
+          {
+            "workouts": [
+              {
+                "programId": 1775034158614,
+                "completedSets": [
+                  "0-0",
+                  "0-1",
+                  "0-2"
+                ],
+                "setOverrides": {
+                  "0-0": {
+                    "weight": "50",
+                    "reps": "20"
+                  },
+                  "0-1": {
+                    "weight": "100",
+                    "reps": "15"
+                  }
+                }
+              }
+            ],
+            "meals": [
+              {
+                "name": "Сало с жопы",
+                "calories": "250"
+              },
+              {
+                "name": "Бидон говна",
+                "calories": "300"
+              },
+              {
+                "name": "Залупа коня",
+                "calories": "1800"
+              }
+            ]
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          },
+          {
+            "workouts": [],
+            "meals": []
+          }
+        ],
+        "theme": "purple",
+        "profile": {
+          "gender": "male",
+          "activity": 1.55,
+          "age": 55,
+          "height": 155,
+          "weight": 100,
+          "calorieLimit": 2300
+        },
+        "history": [
+          {
+            "date": "2026-04-01",
+            "programId": 1775034158614,
+            "programName": "Жопа",
+            "exercises": [
+              {
+                "name": "Попа",
+                "sets": [
+                  {
+                    "weight": 50,
+                    "reps": 20
+                  },
+                  {
+                    "weight": 100,
+                    "reps": 15
+                  },
+                  {
+                    "weight": 100,
+                    "reps": 15
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "date": "2026-04-01",
+            "caloriesEntry": true,
+            "calories": 2350,
+            "exercises": []
+          }
+        ]
+      }
+    }
+  ]
+}

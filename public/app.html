@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FitTrack Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Auth Screen (fallback if token missing) -->
+<div id="auth-screen">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <span class="auth-logo-icon">💪</span>
+            <h1>FitTrack Pro</h1>
+            <p>Тренировки · Прогресс</p>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login-btn" onclick="showAuthTab('login')">Войти</button>
+            <button class="auth-tab" id="tab-reg-btn" onclick="showAuthTab('register')">Регистрация</button>
+        </div>
+        <div id="auth-error" class="auth-error"></div>
+        <div id="form-login">
+            <div class="auth-field">
+                <span class="auth-field-icon">👤</span>
+                <input type="text" id="login-username" placeholder="Логин" autocomplete="username" spellcheck="false">
+            </div>
+            <div class="auth-field">
+                <span class="auth-field-icon">🔒</span>
+                <input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+                <button class="auth-field-toggle" type="button" onclick="togglePasswordVisibility('login-password',this)" tabindex="-1">👁️</button>
+            </div>
+            <button class="auth-submit" onclick="doLogin()" id="login-btn"><span>🚀</span><span>Войти</span></button>
+        </div>
+        <div id="form-register" style="display:none;">
+            <div class="auth-field">
+                <span class="auth-field-icon">👤</span>
+                <input type="text" id="reg-username" placeholder="Логин (мин. 3 символа)" autocomplete="username" spellcheck="false">
+            </div>
+            <div class="auth-field">
+                <span class="auth-field-icon">🔒</span>
+                <input type="password" id="reg-password" placeholder="Пароль (мин. 4 символа)" autocomplete="new-password" onkeydown="if(event.key==='Enter') doRegister()">
+                <button class="auth-field-toggle" type="button" onclick="togglePasswordVisibility('reg-password',this)" tabindex="-1">👁️</button>
+            </div>
+            <button class="auth-submit" onclick="doRegister()" id="reg-btn"><span>✨</span><span>Создать аккаунт</span></button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- User bar -->
+    <div class="user-bar" id="user-bar">
+        <span style="font-size:18px;">👤</span>
+        <span class="user-bar-name" id="user-bar-name"></span>
+        <span class="user-bar-status" id="sync-status">● сохранено</span>
+        <button class="sync-btn" title="Синхронизировать" onclick="forceSyncNow()">🔄</button>
+        <button class="logout-btn" title="Выйти" onclick="logout()">🚪</button>
+    </div>
+
+    <div class="header">
+        <div style="width:36px;"></div>
+        <div class="header-center">
+            <h1>FitTrack Pro</h1>
+            <p>Тренировки + Прогресс</p>
+        </div>
+        <div style="width:36px;"></div>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" onclick="switchTab('calendar')">
+            <span class="icon">📅</span><span class="label">Календарь</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('create')">
+            <span class="icon">➕</span><span class="label">Программы</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('library')">
+            <span class="icon">📚</span><span class="label">Библиотека</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('profile')">
+            <span class="icon">👤</span><span class="label">Профиль</span>
+        </button>
+    </div>
+
+    <!-- ── Calendar ── -->
+    <div id="calendar-view" class="section active">
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-chip active">Неделя</div>
+        </div>
+        <h2>📆 Расписание</h2>
+        <div class="calendar-grid" id="calendar-grid"></div>
+        <div class="achievements-placeholder">
+            <div class="achievements-title">🏅 Ачивменты</div>
+            <p>Скоро здесь появятся ваши достижения: серии тренировок, личные рекорды и прогресс по целям.</p>
+        </div>
+        <div class="donate-footer">
+            <a href="https://boosty.to" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
+        </div>
+    </div>
+
+    <!-- ── Create ── -->
+    <div id="create-view" class="section">
+        <h2 id="form-title">💪 Новая программа</h2>
+        <div class="form-group">
+            <label>Название программы</label>
+            <input type="text" id="prog-name" placeholder="Например: Грудь и трицепс">
+        </div>
+        <div class="form-group">
+            <label>Иконка</label>
+            <div class="emoji-picker" id="emoji-picker"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="margin-bottom:10px;display:block;">Упражнения</label>
+            <div id="exercises-list"></div>
+        </div>
+        <button class="btn btn-secondary" onclick="addExerciseBlock()">
+            <span>+</span><span>Добавить упражнение</span>
+        </button>
+        <button class="btn btn-primary" onclick="saveProgram()" id="save-btn" style="margin-top:10px;">
+            <span>💾</span><span>Сохранить программу</span>
+        </button>
+        <button class="btn btn-secondary" onclick="cancelEdit()" id="cancel-btn" style="display:none;">
+            <span>✕</span><span>Отмена</span>
+        </button>
+        <div class="donate-footer">
+            <a href="https://boosty.to" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
+        </div>
+    </div>
+
+    <!-- ── Library ── -->
+    <div id="library-view" class="section">
+        <h2>📚 Библиотека программ</h2>
+        <div class="library-tabs" style="display:flex;gap:6px;margin:8px 0 14px;">
+            <button class="btn btn-secondary btn-small" id="library-tab-user" onclick="switchLibraryTab('user')" style="flex:1;">
+                Мои программы
+            </button>
+            <button class="btn btn-secondary btn-small" id="library-tab-preset" onclick="switchLibraryTab('preset')" style="flex:1;">
+                Готовые программы
+            </button>
+        </div>
+
+        <div id="library-user-panel">
+            <p style="font-size:13px;color:var(--text-2);margin-bottom:8px;">
+                Здесь отображаются <b>ваши собственные программы</b>. Вы можете <b>редактировать</b> их или
+                <b>удалять</b> — изменения сразу попадут в расписание.
+            </p>
+            <div id="library-user-list"></div>
+        </div>
+
+        <div id="library-preset-panel" style="display:none;">
+            <p style="font-size:13px;color:var(--text-2);margin-bottom:8px;">
+                В этом разделе скоро появится <b>подборка готовых программ от FitTrack Pro</b>.
+                Они будут добавляться автоматически в библиотеку по мере выхода обновлений.
+            </p>
+            <div id="library-preset-list" style="font-size:13px;color:var(--text-2);">
+                Готовые программы появятся в одном из ближайших обновлений.
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Profile ── -->
+    <div id="profile-view" class="section">
+        <h2>👤 Мой профиль</h2>
+        
+        <div class="profile-card profile-user-card">
+            <div>
+                <div class="profile-card-title" style="margin-bottom:4px;">🪪 Аккаунт</div>
+                <div class="profile-user-name" id="profile-username">—</div>
+            </div>
+            <button class="btn btn-primary profile-theme-btn" onclick="openThemeModal()">
+                <span>🎨</span><span>Сменить цвет темы</span>
+            </button>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">📏 Мои параметры</div>
+            <div class="profile-grid">
+                <div class="profile-field">
+                    <label>Пол</label>
+                    <div class="gender-toggle">
+                        <button class="gender-btn" id="gender-m" onclick="setGender('male')">♂ Муж</button>
+                        <button class="gender-btn" id="gender-f" onclick="setGender('female')">♀ Жен</button>
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <label>Возраст</label>
+                    <div class="profile-input-wrap">
+                        <input type="number" id="profile-age" placeholder="—" min="10" max="100" inputmode="numeric" oninput="saveProfile()">
+                        <span class="profile-unit">лет</span>
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <label>Рост</label>
+                    <div class="profile-input-wrap">
+                        <input type="number" id="profile-height" placeholder="—" min="100" max="250" inputmode="numeric" oninput="saveProfile()">
+                        <span class="profile-unit">см</span>
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <label>Вес</label>
+                    <div class="profile-input-wrap">
+                        <input type="number" id="profile-weight" placeholder="—" min="30" max="300" inputmode="numeric" oninput="saveProfile()">
+                        <span class="profile-unit">кг</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-field" style="margin-top:12px;">
+                <label>Уровень активности</label>
+                <div class="activity-selector" id="activity-selector">
+                    <button class="activity-btn" data-val="1.2"   onclick="setActivity(1.2)">🛋️ Сидячий</button>
+                    <button class="activity-btn" data-val="1.375" onclick="setActivity(1.375)">🚶 Лёгкая</button>
+                    <button class="activity-btn" data-val="1.55"  onclick="setActivity(1.55)">🏃 Средняя</button>
+                    <button class="activity-btn" data-val="1.725" onclick="setActivity(1.725)">💪 Высокая</button>
+                    <button class="activity-btn" data-val="1.9"   onclick="setActivity(1.9)">🔥 Очень высокая</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card" id="health-card" style="display:none;">
+            <div class="profile-card-title">💡 Показатели здоровья</div>
+            <div class="health-metrics" id="health-metrics"></div>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">📥 Экспорт данных</div>
+            <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">CSV со всеми завершёнными упражнениями: дата, название, подходы, веса, повторения.</p>
+            <button class="btn btn-primary" onclick="exportCSV()">
+                <span>⬇️</span><span>Скачать статистику (CSV)</span>
+            </button>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">
+                <span>📊 Статистика тренировок</span>
+                <div class="period-toggle">
+                    <button class="period-btn active" id="period-30"  onclick="setPeriod(30)">30д</button>
+                    <button class="period-btn"        id="period-7"   onclick="setPeriod(7)">7д</button>
+                    <button class="period-btn"        id="period-all" onclick="setPeriod(0)">Всё</button>
+                </div>
+            </div>
+            <div id="stats-empty" class="empty-state" style="display:none;padding:20px;">
+                <div class="empty-state-icon">📈</div>
+                <p>Пока нет данных.<br>Отмечайте подходы в расписании!</p>
+            </div>
+            <div id="charts-wrap">
+                <div class="chart-block">
+                    <div class="chart-label">🏋️ Поднятый вес (кг/день)</div>
+                    <canvas id="chart-volume"></canvas>
+                </div>
+                <div class="chart-block">
+                    <div class="chart-label">🔢 Подходов в день</div>
+                    <canvas id="chart-sets"></canvas>
+                </div>
+                <div class="chart-block">
+                    <div class="chart-label">📅 Тренировочные дни</div>
+                    <canvas id="chart-freq"></canvas>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="resetStats()" style="margin-top:12px;">
+                <span>🧹</span><span>Сбросить статистику</span>
+            </button>
+        </div>
+
+        <div class="profile-card" id="summary-card" style="display:none;">
+            <div class="profile-card-title">🏆 Итого за период</div>
+            <div class="summary-grid" id="summary-grid"></div>
+        </div>
+
+        <div class="donate-footer">
+            <a href="https://boosty.to" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
+        </div>
+    </div>
+</div>
+
+<!-- Day Modal -->
+<div class="modal-overlay" id="day-modal" onclick="closeModalOnOverlay(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-title" id="modal-day-title">Понедельник</div>
+                <div class="modal-stats" id="modal-day-stats"></div>
+            </div>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-tabs">
+            <button class="modal-tab active" onclick="switchModalTab('workouts')">🏋️ Тренировки</button>
+        </div>
+        <div class="modal-content">
+            <div id="tab-workouts" class="tab-content active">
+                <div id="day-workouts-list"></div>
+                <button class="btn btn-secondary" onclick="openAddWorkoutSelector()" style="margin-top:8px;">
+                    <span>+</span><span>Добавить тренировку</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Theme Modal -->
+<div class="theme-modal-overlay" id="theme-modal" onclick="closeThemeModal(event)">
+    <div class="theme-modal" onclick="event.stopPropagation()">
+        <div class="theme-modal-header">
+            <div class="theme-modal-title">🎨 Цвет темы</div>
+            <button class="close-btn" onclick="closeThemeModal(event)">&times;</button>
+        </div>
+        <div class="theme-grid">
+            <div class="theme-option purple" data-theme="purple" onclick="setTheme('purple')">
+                <div style="font-size:22px;margin-bottom:6px;">🟣</div>Фиолетовый
+            </div>
+            <div class="theme-option pink" data-theme="pink" onclick="setTheme('pink')">
+                <div style="font-size:22px;margin-bottom:6px;">🌸</div>Розовый
+            </div>
+            <div class="theme-option lime" data-theme="lime" onclick="setTheme('lime')">
+                <div style="font-size:22px;margin-bottom:6px;">🍃</div>Салатовый
+            </div>
+            <div class="theme-option peach" data-theme="peach" onclick="setTheme('peach')">
+                <div style="font-size:22px;margin-bottom:6px;">🍑</div>Персиковый
+            </div>
+            <div class="theme-option blue" data-theme="blue" onclick="setTheme('blue')" style="grid-column:span 2;">
+                <div style="font-size:22px;margin-bottom:6px;">💙</div>Голубой
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Finish workout confirm -->
+<div class="confirm-modal-overlay" id="finish-confirm-modal" onclick="closeFinishConfirmModal(event)">
+    <div class="confirm-modal" onclick="event.stopPropagation()">
+        <div class="confirm-modal-title">Завершить тренировку?</div>
+        <div class="confirm-modal-text">
+            Вы уверены? Тренировка будет завершена, и отобразится итоговая статистика.
+        </div>
+        <div class="confirm-modal-actions">
+            <button class="btn btn-secondary" onclick="closeFinishConfirmModal(event)">Нет</button>
+            <button class="btn btn-primary" onclick="confirmFinishWorkout()">Да</button>
+        </div>
+    </div>
+</div>
+
+<!-- Celebration -->
+<div class="celebration-overlay" id="celebration-overlay" onclick="this.style.display='none'">
+    <div class="celebration-content" onclick="event.stopPropagation()">
+        <div class="celebration-icon">🏆</div>
+        <div class="celebration-title">Тренировка завершена!</div>
+        <p style="color:var(--text-2);font-size:14px;">Отличная работа! Вот твоя статистика:</p>
+        <div class="celebration-stats">
+            <div class="c-stat">
+                <div class="c-stat-val" id="cel-volume">0 кг</div>
+                <div class="c-stat-label">Нагрузка</div>
+            </div>
+            <div class="c-stat">
+                <div class="c-stat-val" id="cel-sets">0</div>
+                <div class="c-stat-label">Подходов</div>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('celebration-overlay').style.display='none'">Круто! 🎉</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
