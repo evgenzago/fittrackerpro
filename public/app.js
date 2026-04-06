@@ -6,6 +6,11 @@
     let currentUsername = localStorage.getItem('ft_username') || null;
     let syncTimer = null;
     let lastSyncedHash = '';
+    let programs = [];
+    let schedule = [];
+    let workoutHistory = [];
+    let achievements = [];
+    let currentSeason = null; // Будет инициализировано позже
 
     function apiHeaders() {
         return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
@@ -52,14 +57,10 @@
     function getTypeMeta(type) {
         if (type === 'cardio') {
             return {
-                primaryLabel: 'Мин',
-                secondaryLabel: 'Км',
+                primaryLabel: 'Минуты',
                 primaryUnit: 'мин',
-                secondaryUnit: 'км',
                 primaryMin: '0',
-                secondaryMin: '0',
-                primaryPlaceholder: 'Мин',
-                secondaryPlaceholder: 'Км'
+                primaryPlaceholder: 'Минуты'
             };
         }
         return {
@@ -72,6 +73,205 @@
             primaryPlaceholder: 'Вес',
             secondaryPlaceholder: 'Повт.'
         };
+    }
+
+    // ─── Achievements System ─────────────────────────────────────────
+    function getCurrentSeason() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        return `${year}-${String(month).padStart(2, '0')}`;
+    }
+
+    function initializeAchievements() {
+        const defaultAchievements = [
+            {
+                id: 'strength-1000kg',
+                name: 'Силач',
+                description: 'Сделать 1000кг на одном упражнении за тренировку',
+                icon: '🏋️',
+                requirement: { type: 'single_exercise_volume', value: 1000 },
+                unlocked: false,
+                unlockedAt: null
+            },
+            {
+                id: 'cardio-60min',
+                name: 'Кардио-мастер',
+                description: 'Накопить 60 минут кардио-тренировок',
+                icon: '🏃',
+                requirement: { type: 'cardio_minutes_total', value: 60 },
+                unlocked: false,
+                unlockedAt: null
+            },
+            {
+                id: 'gym-enthusiast',
+                name: 'Энтузиаст качалки',
+                description: 'Тренироваться каждый день в течение сезона',
+                icon: '💪',
+                requirement: { type: 'daily_streak', value: 7 },
+                unlocked: false,
+                unlockedAt: null
+            }
+        ];
+
+        if (!achievements.length) {
+            achievements = defaultAchievements.map(a => ({...a}));
+            saveAchievements();
+        }
+    }
+
+    function saveAchievements() {
+        localStorage.setItem('ft_achievements', JSON.stringify(achievements));
+        localStorage.setItem('ft_current_season', currentSeason);
+    }
+
+    function loadAchievements() {
+        const saved = localStorage.getItem('ft_achievements');
+        const savedSeason = localStorage.getItem('ft_current_season');
+        
+        // Инициализируем текущий сезон
+        if (!currentSeason) {
+            currentSeason = getCurrentSeason();
+        }
+        
+        if (saved) {
+            achievements = JSON.parse(saved);
+        }
+        
+        if (savedSeason !== getCurrentSeason()) {
+            // Новый сезон - сбрасываем прогресс
+            currentSeason = getCurrentSeason();
+            achievements.forEach(a => {
+                a.unlocked = false;
+                a.unlockedAt = null;
+            });
+            saveAchievements();
+        }
+    }
+
+    function checkAchievements() {
+        let newUnlocks = [];
+        
+        achievements.forEach(achievement => {
+            if (achievement.unlocked) return;
+            
+            let shouldUnlock = false;
+            
+            switch (achievement.requirement.type) {
+                case 'single_exercise_volume':
+                    shouldUnlock = checkSingleExerciseVolume(achievement.requirement.value);
+                    break;
+                case 'cardio_minutes_total':
+                    shouldUnlock = checkCardioMinutesTotal(achievement.requirement.value);
+                    break;
+                case 'daily_streak':
+                    shouldUnlock = checkDailyStreak(achievement.requirement.value);
+                    break;
+            }
+            
+            if (shouldUnlock) {
+                achievement.unlocked = true;
+                achievement.unlockedAt = new Date().toISOString();
+                newUnlocks.push(achievement);
+            }
+        });
+        
+        if (newUnlocks.length > 0) {
+            saveAchievements();
+            renderAchievements();
+            showAchievementUnlocked(newUnlocks);
+        }
+    }
+
+    function checkSingleExerciseVolume(targetVolume) {
+        // Проверяем все тренировки в истории
+        for (const workout of workoutHistory) {
+            for (const exercise of workout.exercises) {
+                if (exercise.type === 'strength') {
+                    const totalVolume = exercise.sets.reduce((sum, set) => {
+                        return sum + (parseFloat(set.weight) || 0) * (parseFloat(set.reps) || 0);
+                    }, 0);
+                    if (totalVolume >= targetVolume) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    function checkCardioMinutesTotal(targetMinutes) {
+        let totalMinutes = 0;
+        workoutHistory.forEach(workout => {
+            workout.exercises.forEach(exercise => {
+                if (exercise.type === 'cardio') {
+                    exercise.sets.forEach(set => {
+                        totalMinutes += parseFloat(set.weight) || 0;
+                    });
+                }
+            });
+        });
+        return totalMinutes >= targetMinutes;
+    }
+
+    function checkDailyStreak(targetDays) {
+        if (workoutHistory.length < targetDays) return false;
+        
+        const sortedDates = [...new Set(workoutHistory.map(w => w.date))].sort();
+        const today = new Date().toISOString().split('T')[0];
+        
+        let streak = 0;
+        let currentDate = new Date(today);
+        
+        for (let i = 0; i < targetDays; i++) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            if (sortedDates.includes(dateStr)) {
+                streak++;
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        
+        return streak >= targetDays;
+    }
+
+    function showAchievementUnlocked(unlockedAchievements) {
+        const names = unlockedAchievements.map(a => a.name).join(', ');
+        showAlert(`🏆 Получена ачивка: ${names}!`, 'success');
+    }
+
+    function renderAchievements() {
+        const container = document.querySelector('.achievements-placeholder');
+        if (!container) return;
+        
+        const unlockedCount = achievements.filter(a => a.unlocked).length;
+        const totalCount = achievements.length;
+        
+        container.innerHTML = `
+            <div class="achievements-title">🏅 Ачивки (${unlockedCount}/${totalCount})</div>
+            <div class="achievements-grid">
+                ${achievements.map(achievement => `
+                    <div class="achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}" 
+                         onclick="showAchievementDetails('${achievement.id}')"
+                         title="${achievement.unlocked ? achievement.description : '🔒 ' + achievement.description}">
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-name">${achievement.name}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function showAchievementDetails(achievementId) {
+        const achievement = achievements.find(a => a.id === achievementId);
+        if (!achievement) return;
+        
+        const status = achievement.unlocked 
+            ? `✅ Получена ${new Date(achievement.unlockedAt).toLocaleDateString('ru')}`
+            : '🔒 Еще не получена';
+            
+        showAlert(`${achievement.icon} ${achievement.name}\n\n${achievement.description}\n\nСтатус: ${status}`, 'info');
     }
 
     function setAuthError(msg) {
@@ -217,9 +417,12 @@
     //  APP INIT (called after auth)
     // ═══════════════════════════════════════════════════════
     function initApp() {
+        loadAchievements();
+        initializeAchievements();
         checkWeeklyReset();
         renderCalendar();
         renderEmojiPicker();
+        renderAchievements();
         if (document.getElementById('exercises-list').children.length === 0) addExerciseBlock();
         renderLibrary();
         updateThemeModal();
@@ -285,8 +488,10 @@
     const DAYS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     const EMOJIS = ['💪', '🏋️', '🏃', '🧘', '🚴', '🏊', '🥊', '🏀', '⚽', '🎾', '🏸', '🏓', '🥋', '🤸', '🤺', '🏌️', '🧗', '🚣', '🛹', '🛷'];
 
-    let programs = [];
-    let schedule = Array(7).fill(null).map(() => ({ workouts: [] }));
+    // Инициализация schedule если еще не инициализирован
+    if (schedule.length === 0) {
+        schedule = Array(7).fill(null).map(() => ({ workouts: [] }));
+    }
 
 
     function resetSchedule() {
@@ -405,12 +610,24 @@
         const idx = container.querySelectorAll('.set-row').length;
         const row = document.createElement('div');
         row.className = 'set-row';
-        row.innerHTML = `
-            <div class="set-number">${idx + 1}</div>
-            <input type="number" class="set-weight-input" placeholder="${meta.primaryPlaceholder}" min="${meta.primaryMin}" inputmode="decimal" onfocus="clearZeroInput(this)">
-            <input type="number" class="set-reps-input" placeholder="${meta.secondaryPlaceholder}" min="${meta.secondaryMin}" inputmode="numeric" onfocus="clearZeroInput(this)">
-            <button class="remove-set-btn" onclick="removeSetRow(this)">−</button>
-        `;
+        
+        if (type === 'cardio') {
+            // Для кардио только одно поле - минуты
+            row.innerHTML = `
+                <div class="set-number">${idx + 1}</div>
+                <input type="number" class="set-weight-input" placeholder="${meta.primaryPlaceholder}" min="${meta.primaryMin}" inputmode="numeric" onfocus="clearZeroInput(this)">
+                <button class="remove-set-btn" onclick="removeSetRow(this)">−</button>
+            `;
+        } else {
+            // Для силовых - вес и повторения
+            row.innerHTML = `
+                <div class="set-number">${idx + 1}</div>
+                <input type="number" class="set-weight-input" placeholder="${meta.primaryPlaceholder}" min="${meta.primaryMin}" inputmode="decimal" onfocus="clearZeroInput(this)">
+                <input type="number" class="set-reps-input" placeholder="${meta.secondaryPlaceholder}" min="${meta.secondaryMin}" inputmode="numeric" onfocus="clearZeroInput(this)">
+                <button class="remove-set-btn" onclick="removeSetRow(this)">−</button>
+            `;
+        }
+        
         container.appendChild(row);
         if (scroll) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         renumberSets(blockId);
@@ -425,13 +642,23 @@
         block.querySelectorAll('.set-row').forEach(row => {
             const p = row.querySelector('.set-weight-input');
             const s = row.querySelector('.set-reps-input');
+            
             if (p) {
                 p.placeholder = meta.primaryPlaceholder;
                 p.min = meta.primaryMin;
+                p.inputmode = type === 'cardio' ? 'numeric' : 'decimal';
             }
-            if (s) {
-                s.placeholder = meta.secondaryPlaceholder;
-                s.min = meta.secondaryMin;
+            
+            if (type === 'cardio') {
+                // Для кардио скрываем второе поле (повторения)
+                if (s) s.style.display = 'none';
+            } else {
+                // Для силовых показываем второе поле
+                if (s) {
+                    s.style.display = '';
+                    s.placeholder = meta.secondaryPlaceholder;
+                    s.min = meta.secondaryMin;
+                }
             }
         });
     }
@@ -499,6 +726,7 @@
                 </div>
                 <div class="program-actions">
                     <button class="btn btn-secondary btn-small" onclick="switchTab('create'); editProgram(${prog.id})">✏️ Редактировать</button>
+                    <button class="btn btn-primary btn-small" onclick="exportSingleProgram(${prog.id})" title="Экспортировать программу">⬇️ Экспорт</button>
                     <button class="btn btn-danger btn-small" onclick="deleteProgram(${prog.id})">🗑️ Удалить</button>
                 </div>
             `;
@@ -522,11 +750,21 @@
                 const sets = [];
                 block.querySelectorAll('.set-row').forEach(row => {
                     const weight = row.querySelector('.set-weight-input').value.trim();
-                    const reps = row.querySelector('.set-reps-input').value.trim();
-                    sets.push({ 
-                        weight: weight || '0',
-                        reps: reps || '0'
-                    });
+                    const reps = row.querySelector('.set-reps-input')?.value.trim() || '';
+                    
+                    if (exType === 'cardio') {
+                        // Для кардио сохраняем только минуты в поле weight
+                        sets.push({ 
+                            weight: weight || '0',
+                            reps: '0' // для кардио reps не используется
+                        });
+                    } else {
+                        // Для силовых сохраняем и вес, и повторения
+                        sets.push({ 
+                            weight: weight || '0',
+                            reps: reps || '0'
+                        });
+                    }
                 });
                 if (sets.length > 0) {
                     exercises.push({ name: exName, type: exType, sets });
@@ -769,14 +1007,26 @@
             
             let setsHtml = '';
             ex.sets.forEach((set, idx) => {
-                setsHtml += `
-                    <div class="set-row">
-                        <div class="set-number">${idx + 1}</div>
-                        <input type="number" class="set-weight-input" placeholder="${meta.primaryPlaceholder}" min="${meta.primaryMin}" inputmode="decimal" value="${set.weight || ''}" onfocus="clearZeroInput(this)">
-                        <input type="number" class="set-reps-input" placeholder="${meta.secondaryPlaceholder}" min="${meta.secondaryMin}" inputmode="numeric" value="${set.reps || ''}" onfocus="clearZeroInput(this)">
-                        <button class="remove-set-btn" onclick="removeSetRow(this)">−</button>
-                    </div>
-                `;
+                if (exType === 'cardio') {
+                    // Для кардио только одно поле - минуты
+                    setsHtml += `
+                        <div class="set-row">
+                            <div class="set-number">${idx + 1}</div>
+                            <input type="number" class="set-weight-input" placeholder="${meta.primaryPlaceholder}" min="${meta.primaryMin}" inputmode="numeric" value="${set.weight || ''}" onfocus="clearZeroInput(this)">
+                            <button class="remove-set-btn" onclick="removeSetRow(this)">−</button>
+                        </div>
+                    `;
+                } else {
+                    // Для силовых - вес и повторения
+                    setsHtml += `
+                        <div class="set-row">
+                            <div class="set-number">${idx + 1}</div>
+                            <input type="number" class="set-weight-input" placeholder="${meta.primaryPlaceholder}" min="${meta.primaryMin}" inputmode="decimal" value="${set.weight || ''}" onfocus="clearZeroInput(this)">
+                            <input type="number" class="set-reps-input" placeholder="${meta.secondaryPlaceholder}" min="${meta.secondaryMin}" inputmode="numeric" value="${set.reps || ''}" onfocus="clearZeroInput(this)">
+                            <button class="remove-set-btn" onclick="removeSetRow(this)">−</button>
+                        </div>
+                    `;
+                }
             });
             
             block.innerHTML = `
@@ -1334,6 +1584,7 @@
         renderDayContent();
         renderCalendar();
         showCelebration(prog, w);
+        checkAchievements(); // Проверяем ачивки после каждой тренировки
         showAlert('Тренировка завершена ✅', 'success');
     }
 
@@ -1369,7 +1620,6 @@
     function showCelebration(prog, workoutData) {
         let strengthVolume = 0;
         let cardioMinutes = 0;
-        let cardioKm = 0;
         let completedSetCount = 0;
         
         const completed = new Set(workoutData.completedSets || []);
@@ -1381,11 +1631,9 @@
                 if (!completed.has(setId)) continue;
                 const baseSet = ex.sets?.[setIdx];
                 const primaryValue = parseFloat(workoutData.setOverrides?.[setId]?.weight ?? baseSet?.weight ?? '0') || 0;
-                const secondaryValue = parseFloat(workoutData.setOverrides?.[setId]?.reps ?? baseSet?.reps ?? '0') || 0;
 
                 if (exType === 'cardio') {
                     cardioMinutes += primaryValue;
-                    cardioKm += secondaryValue;
                 } else {
                     strengthVolume += primaryValue;
                 }
@@ -1398,8 +1646,8 @@
 
         const loadParts = [];
         if (strengthVolume > 0) loadParts.push(`${Math.round(strengthVolume)} кг`);
-        if (cardioKm > 0 || cardioMinutes > 0) {
-            loadParts.push(`${cardioKm.toFixed(1)} км / ${Math.round(cardioMinutes)} мин`);
+        if (cardioMinutes > 0) {
+            loadParts.push(`${Math.round(cardioMinutes)} мин кардио`);
         }
 
         document.getElementById('cel-volume').textContent = loadParts.length ? loadParts.join(' · ') : '0';
@@ -1462,7 +1710,6 @@
     //  PROFILE & STATS
     // ═══════════════════════════════════════════════════════
     let userProfile = {};   // { gender, age, height, weight, activity }
-    let workoutHistory = []; // [{ date, programName, exercises }]
     let activePeriod = 30;
     let chartVolume = null, chartSets = null, chartFreq = null;
     const profileStatsDom = {
@@ -1705,13 +1952,12 @@
 
         const byDate = {};
         workoutEntries.forEach(h => {
-            if (!byDate[h.date]) byDate[h.date] = { strengthVolume: 0, cardioKm: 0, cardioMinutes: 0, sets: 0 };
+            if (!byDate[h.date]) byDate[h.date] = { strengthVolume: 0, cardioMinutes: 0, sets: 0 };
             h.exercises.forEach(ex => {
                 const exType = normalizeExerciseType(ex.type);
                 ex.sets.forEach(s => {
                     if (exType === 'cardio') {
                         byDate[h.date].cardioMinutes += Number(s.weight) || 0;
-                        byDate[h.date].cardioKm += Number(s.reps) || 0;
                     } else {
                         byDate[h.date].strengthVolume += Number(s.weight) || 0;
                     }
@@ -1722,20 +1968,18 @@
         const dates   = Object.keys(byDate).sort();
         const labels  = dates.map(d => { const [,m,day]=d.split('-'); return `${parseInt(day)}.${parseInt(m)}`; });
         const strengthVolumes = dates.map(d => Math.round(byDate[d].strengthVolume));
-        const cardioDistances = dates.map(d => Number(byDate[d].cardioKm.toFixed(1)));
         const cardioDurations = dates.map(d => Math.round(byDate[d].cardioMinutes));
         const sets    = dates.map(d => byDate[d].sets);
         const hasStrengthData = strengthVolumes.some(v => v > 0);
-        const hasCardioKmData = cardioDistances.some(v => v > 0);
         const hasCardioTimeData = cardioDurations.some(v => v > 0);
         const firstChartLabel = statsDom.firstChartLabel;
         const secondChartLabel = statsDom.secondChartLabel;
         if (firstChartLabel) {
-            firstChartLabel.textContent = hasStrengthData && hasCardioKmData
-                ? '🏋️ Силовой объем + кардио дистанция (в день)'
+            firstChartLabel.textContent = hasStrengthData && hasCardioTimeData
+                ? '🏋️ Силовой объем + кардио минуты (в день)'
                 : hasStrengthData
                     ? '🏋️ Поднятый вес (кг/день)'
-                    : '🏃 Дистанция кардио (км/день)';
+                    : '🏃 Кардио минуты (в день)';
         }
         if (secondChartLabel) {
             secondChartLabel.textContent = hasCardioTimeData
@@ -1756,10 +2000,10 @@
                 type: 'bar'
             });
         }
-        if (hasCardioKmData || !hasStrengthData) {
+        if (hasCardioTimeData || !hasStrengthData) {
             chartVolumeDatasets.push({
-                label: 'Кардио дистанция (км)',
-                data: cardioDistances,
+                label: 'Кардио минуты',
+                data: cardioDurations,
                 borderColor: '#06b6d4',
                 backgroundColor: '#06b6d422',
                 borderWidth: 2,
@@ -1816,7 +2060,6 @@
         });
 
         const totalStrengthVolume = strengthVolumes.reduce((a,b)=>a+b,0);
-        const totalCardioKm = cardioDistances.reduce((a,b)=>a+b,0);
         const totalCardioMinutes = cardioDurations.reduce((a,b)=>a+b,0);
         const totalSets     = sets.reduce((a,b)=>a+b,0);
         const totalWorkouts = workoutEntries.length;
@@ -1826,12 +2069,8 @@
                 <div class="summary-stat-label">кг поднято (сил.)</div>
             </div>
             <div class="summary-stat">
-                <div class="summary-stat-val">${totalCardioKm.toFixed(1)}</div>
-                <div class="summary-stat-label">км кардио</div>
-            </div>
-            <div class="summary-stat">
                 <div class="summary-stat-val">${totalCardioMinutes}</div>
-                <div class="summary-stat-label">мин кардио</div>
+                <div class="summary-stat-label">минут кардио</div>
             </div>
             <div class="summary-stat">
                 <div class="summary-stat-val">${totalSets}</div>
@@ -1888,4 +2127,139 @@
         a.click();
         URL.revokeObjectURL(url);
         showAlert('CSV скачан! ✅', 'success');
+    }
+
+    // ── Programs Export/Import ────────────────────────────
+    function exportSingleProgram(programId) {
+        const program = programs.find(p => p.id === programId);
+        if (!program) {
+            showAlert('Программа не найдена');
+            return;
+        }
+
+        try {
+            // Создаем объект для экспорта
+            const exportData = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                programsCount: 1,
+                programs: [{
+                    id: program.id,
+                    name: program.name,
+                    icon: program.icon,
+                    exercises: program.exercises.map(ex => ({
+                        name: ex.name,
+                        type: ex.type || 'strength',
+                        sets: ex.sets
+                    }))
+                }]
+            };
+
+            // Создаем JSON файл
+            const json = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `program_${program.name.replace(/\s+/g, '_')}_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showAlert(`Программа "${program.name}" экспортирована ✅`, 'success');
+        } catch (e) {
+            console.error('Export error:', e);
+            showAlert('Ошибка при экспорте: ' + e.message);
+        }
+    }
+
+    async function importPrograms(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Reset file input so same file can be selected again
+        event.target.value = '';
+
+        if (!file.name.endsWith('.json')) {
+            showAlert('Пожалуйста, выберите JSON файл');
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                throw new Error('Ошибка чтения файла: неверный формат JSON');
+            }
+
+            console.log('Importing data:', data);
+
+            // Validate structure - поддерживаем как формат с одной программой, так и с несколькими
+            let programsToImport = [];
+            
+            if (data.programs && Array.isArray(data.programs)) {
+                programsToImport = data.programs;
+            } else if (data.name && data.exercises) {
+                // Формат с одной программой без обертки
+                programsToImport = [data];
+            } else {
+                throw new Error('Неверный формат файла. Ожидался файл программы FitTrack.');
+            }
+
+            console.log('Programs to import:', programsToImport);
+
+            if (programsToImport.length === 0) {
+                showAlert('Файл не содержит программ');
+                return;
+            }
+
+            // Валидируем структуру каждой программы
+            for (const prog of programsToImport) {
+                if (!prog.name || !prog.exercises || !Array.isArray(prog.exercises)) {
+                    throw new Error('Неверная структура программы: ' + (prog.name || 'без названия'));
+                }
+                for (const ex of prog.exercises) {
+                    if (!ex.name || !ex.sets || !Array.isArray(ex.sets)) {
+                        throw new Error('Неверная структура упражнения в программе: ' + prog.name);
+                    }
+                }
+            }
+
+            // Confirm import
+            const confirmMsg = programsToImport.length === 1 
+                ? `Импортировать программу "${programsToImport[0].name}"?`
+                : `Импортировать ${programsToImport.length} программ?`;
+            
+            if (!confirm(confirmMsg + '\n\nПрограммы будут добавлены к вашим существующим.')) {
+                return;
+            }
+
+            const payload = { programs: programsToImport };
+            console.log('Sending to server:', payload);
+
+            const response = await fetch(API + '/programs/import', {
+                method: 'POST',
+                headers: apiHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            console.log('Response status:', response.status);
+            const result = await response.json();
+            console.log('Response data:', result);
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Ошибка импорта');
+            }
+
+            // Reload data from server
+            await loadDataFromServer();
+            renderLibrary();
+            renderCalendar();
+
+            showAlert(result.message || `Импортировано ${result.importedCount} программ ✅`, 'success');
+        } catch (e) {
+            console.error('Import error:', e);
+            showAlert('Ошибка при импорте: ' + e.message);
+        }
     }

@@ -85,24 +85,42 @@
       "data": {
         "programs": [
           {
-            "id": 1775214181162,
-            "name": "123",
+            "id": 1775421388997,
+            "name": "Жопу качат",
             "icon": "💪",
             "exercises": [
               {
-                "name": "123",
+                "name": "Присед",
                 "type": "strength",
                 "sets": [
                   {
-                    "weight": "0",
+                    "weight": "100",
+                    "reps": "15"
+                  },
+                  {
+                    "weight": "50",
+                    "reps": "10"
+                  },
+                  {
+                    "weight": "25",
+                    "reps": "5"
+                  }
+                ]
+              },
+              {
+                "name": "Бегит",
+                "type": "cardio",
+                "sets": [
+                  {
+                    "weight": "30",
                     "reps": "0"
                   },
                   {
-                    "weight": "0",
+                    "weight": "20",
                     "reps": "0"
                   },
                   {
-                    "weight": "0",
+                    "weight": "10",
                     "reps": "0"
                   }
                 ]
@@ -116,76 +134,32 @@
               {
                 "programId": 1775049114350,
                 "completedSets": [],
-                "setOverrides": {
-                  "0-0": {
-                    "weight": "99",
-                    "reps": "0"
-                  },
-                  "0-1": {
-                    "weight": "120",
-                    "reps": "15"
-                  },
-                  "1-0": {
-                    "weight": "150",
-                    "reps": "25"
-                  }
-                },
+                "setOverrides": {},
                 "exerciseSetCounts": [
                   2,
                   1
-                ]
-              }
-            ],
-            "meals": [
-              {
-                "name": "12",
-                "calories": "5500"
-              }
-            ]
-          },
-          {
-            "workouts": [],
-            "meals": []
-          },
-          {
-            "workouts": [],
-            "meals": []
-          },
-          {
-            "workouts": [],
-            "meals": []
-          },
-          {
-            "workouts": [
-              {
-                "programId": 1775214181162,
-                "completedSets": [],
-                "setOverrides": {
-                  "0-3": {
-                    "weight": "0",
-                    "reps": "0"
-                  }
-                },
-                "exerciseSetCounts": [
-                  4
                 ],
                 "finishedAt": null
               }
-            ],
-            "meals": [
-              {
-                "name": "Сало",
-                "calories": "2000"
-              }
             ]
           },
           {
-            "workouts": [],
-            "meals": []
+            "workouts": []
           },
           {
-            "workouts": [],
-            "meals": []
+            "workouts": []
+          },
+          {
+            "workouts": []
+          },
+          {
+            "workouts": []
+          },
+          {
+            "workouts": []
+          },
+          {
+            "workouts": []
           }
         ],
         "theme": "pink",
@@ -196,7 +170,7 @@
           "height": 205,
           "weight": 155,
           "calorieLimit": null,
-          "lastWeeklyReset": "2026-03-29"
+          "lastWeeklyReset": "2026-04-05"
         },
         "history": [
           {

@@ -20,7 +20,6 @@ function writeDB(data) {
 if (!fs.existsSync(DB_FILE)) writeDB({ users: [] });
 
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 function authRequired(req, res, next) {
   const header = req.headers['authorization'];
@@ -99,6 +98,97 @@ app.delete('/api/account', authRequired, (req, res) => {
   writeDB(db);
   res.json({ ok: true });
 });
+
+// GET /api/programs/export - Export user's programs as JSON
+app.get('/api/programs/export', authRequired, (req, res) => {
+  const db   = readDB();
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+  
+  const programs = (user.data && user.data.programs) ? user.data.programs : [];
+  
+  // Create export object with metadata
+  const exportData = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    username: user.username,
+    programsCount: programs.length,
+    programs: programs.map(p => ({
+      id: p.id,
+      name: p.name,
+      icon: p.icon,
+      exercises: p.exercises.map(ex => ({
+        name: ex.name,
+        type: ex.type || 'strength',
+        sets: ex.sets
+      }))
+    }))
+  };
+  
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename="fittrack_programs_${user.username}_${Date.now()}.json"`);
+  res.json(exportData);
+});
+
+// POST /api/programs/import - Import programs from JSON
+app.post('/api/programs/import', authRequired, (req, res) => {
+  console.log('Import request received');
+  console.log('Request body:', req.body);
+  
+  const { programs } = req.body;
+  
+  if (!programs || !Array.isArray(programs)) {
+    console.error('Invalid format:', programs);
+    return res.status(400).json({ error: 'Неверный формат данных' });
+  }
+  
+  // Validate programs structure
+  for (const prog of programs) {
+    if (!prog.name || !prog.exercises || !Array.isArray(prog.exercises)) {
+      console.error('Invalid program structure:', prog);
+      return res.status(400).json({ error: 'Неверная структура программы: ' + (prog.name || 'без названия') });
+    }
+    for (const ex of prog.exercises) {
+      if (!ex.name || !ex.sets || !Array.isArray(ex.sets)) {
+        console.error('Invalid exercise structure in program:', prog.name, ex);
+        return res.status(400).json({ error: 'Неверная структура упражнения в программе: ' + prog.name });
+      }
+    }
+  }
+  
+  const db   = readDB();
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user) {
+    console.error('User not found:', req.user.id);
+    return res.status(404).json({ error: 'Пользователь не найден' });
+  }
+  
+  console.log('User found:', user.username);
+  console.log('Current programs count:', user.data?.programs?.length || 0);
+  
+  // Add new programs with fresh IDs to avoid conflicts
+  const importedPrograms = programs.map(p => ({
+    ...p,
+    id: Date.now() + Math.floor(Math.random() * 100000)
+  }));
+  
+  if (!user.data) user.data = {};
+  if (!user.data.programs) user.data.programs = [];
+  
+  user.data.programs = [...user.data.programs, ...importedPrograms];
+  writeDB(db);
+  
+  console.log('Imported', importedPrograms.length, 'programs');
+  
+  res.json({ 
+    ok: true, 
+    importedCount: importedPrograms.length,
+    message: `Импортировано ${importedPrograms.length} программ`
+  });
+});
+
+// Serve static files (must be after all API routes)
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
   console.log(`✅  FitTrack сервер запущен: http://localhost:${PORT}`);

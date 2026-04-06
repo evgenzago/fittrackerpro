@@ -427,10 +427,35 @@
         .summary-stat-val { font-size:20px; font-weight:800; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
         .summary-stat-label { font-size:10px; color:var(--text-2); font-weight:600; margin-top:3px; }
 
-        /* Achievements placeholder */
-        .achievements-placeholder { margin-top:14px; background:var(--surface); border:1px dashed var(--border-strong); border-radius:var(--r); padding:14px; }
-        .achievements-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:6px; }
-        .achievements-placeholder p { font-size:12px; color:var(--text-2); line-height:1.5; }
+        /* Achievements */
+        .achievements-placeholder { margin-top:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:14px; }
+        .achievements-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:12px; }
+        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
+        .achievement-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 12px 8px; 
+            border-radius: var(--rs); 
+            cursor: pointer; 
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .achievement-item.locked { 
+            background: var(--surface-2); 
+            border: 1px solid var(--border);
+            filter: grayscale(1);
+            opacity: 0.6;
+        }
+        .achievement-item.unlocked { 
+            background: linear-gradient(135deg, var(--primary-glow), transparent);
+            border: 1px solid var(--primary);
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+        .achievement-item:hover { transform: translateY(-2px); }
+        .achievement-icon { font-size: 24px; margin-bottom: 4px; }
+        .achievement-name { font-size: 10px; font-weight: 600; color: var(--text-2); line-height: 1.2; }
+        .achievement-item.unlocked .achievement-name { color: var(--text); }
 
         /* ── Captcha — same style as auth fields ── */
         .auth-field.captcha-field { margin-top:4px; }
@@ -439,7 +464,8 @@
         .auth-field.captcha-field.error input { border-color:var(--danger) !important; animation:shake 0.35s ease; }
 
         /* ── Donate footer — static at bottom of each section ── */
-        .donate-footer { margin-top:28px; padding:18px 0 6px; display:flex; justify-content:center; border-top:1px solid var(--border); }
+        .profile-reset-bottom { margin-top: 12px; margin-bottom: 4px; }
+        .donate-footer { margin-top: 20px; padding: 18px 0 6px; display: flex; justify-content: center; border-top: 1px solid var(--border); }
         .donate-footer-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 26px; background:linear-gradient(135deg,#ec4899,#f59e0b); border-radius:999px; color:white; font-size:13px; font-weight:700; font-family:inherit; text-decoration:none; box-shadow:0 4px 18px rgba(236,72,153,0.28); transition:all 0.25s; }
         .donate-footer-btn:hover { transform:translateY(-2px); box-shadow:0 7px 24px rgba(236,72,153,0.4); }
         .donate-footer-btn:active { transform:translateY(0); }

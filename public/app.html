@@ -97,7 +97,7 @@
             <p>Скоро здесь появятся ваши достижения: серии тренировок, личные рекорды и прогресс по целям.</p>
         </div>
         <div class="donate-footer">
-            <a href="https://boosty.to" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
+            <a href="https://boosty.to/fittrackpro" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
         </div>
     </div>
 
@@ -126,7 +126,7 @@
             <span>✕</span><span>Отмена</span>
         </button>
         <div class="donate-footer">
-            <a href="https://boosty.to" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
+            <a href="https://boosty.to/fittrackpro" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
         </div>
     </div>
 
@@ -147,6 +147,12 @@
                 Здесь отображаются <b>ваши собственные программы</b>. Вы можете <b>редактировать</b> их или
                 <b>удалять</b> — изменения сразу попадут в расписание.
             </p>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('import-file-input').click()" style="flex:1;">
+                    <span>⬆️</span><span>Импортировать программы</span>
+                </button>
+                <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importPrograms(event)">
+            </div>
             <div id="library-user-list"></div>
         </div>
 
@@ -225,14 +231,6 @@
         </div>
 
         <div class="profile-card">
-            <div class="profile-card-title">📥 Экспорт данных</div>
-            <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">CSV со всеми завершёнными упражнениями: дата, название, подходы, веса, повторения.</p>
-            <button class="btn btn-primary" onclick="exportCSV()">
-                <span>⬇️</span><span>Скачать статистику (CSV)</span>
-            </button>
-        </div>
-
-        <div class="profile-card">
             <div class="profile-card-title">
                 <span>📊 Статистика тренировок</span>
                 <div class="period-toggle">
@@ -259,8 +257,9 @@
                     <canvas id="chart-freq"></canvas>
                 </div>
             </div>
-            <button class="btn btn-danger" onclick="resetStats()" style="margin-top:12px;">
-                <span>🧹</span><span>Сбросить статистику</span>
+            <p style="font-size:13px;color:var(--text-2);margin:14px 0 10px;">CSV со всеми завершёнными упражнениями: дата, название, подходы, веса, повторения.</p>
+            <button class="btn btn-primary" onclick="exportCSV()" style="width:100%;">
+                <span>⬇️</span><span>Выгрузить статистику (CSV)</span>
             </button>
         </div>
 
@@ -269,8 +268,14 @@
             <div class="summary-grid" id="summary-grid"></div>
         </div>
 
+        <div class="profile-card profile-reset-bottom">
+            <button class="btn btn-danger" onclick="resetStats()" style="width:100%;">
+                <span>🧹</span><span>Сбросить статистику</span>
+            </button>
+        </div>
+
         <div class="donate-footer">
-            <a href="https://boosty.to" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
+            <a href="https://boosty.to/fittrackpro" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
         </div>
     </div>
 </div>
