@@ -242,16 +242,22 @@
     }
 
     function renderAchievements() {
-        const container = document.querySelector('.achievements-placeholder');
+        const container = document.querySelector('#profile-achievements');
         if (!container) return;
+        
+        // Сортируем ачивки: выполненные первыми
+        const sortedAchievements = [...achievements].sort((a, b) => {
+            if (a.unlocked && !b.unlocked) return -1;
+            if (!a.unlocked && b.unlocked) return 1;
+            return 0;
+        });
         
         const unlockedCount = achievements.filter(a => a.unlocked).length;
         const totalCount = achievements.length;
         
         container.innerHTML = `
-            <div class="achievements-title">🏅 Ачивки (${unlockedCount}/${totalCount})</div>
             <div class="achievements-grid">
-                ${achievements.map(achievement => `
+                ${sortedAchievements.map(achievement => `
                     <div class="achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}" 
                          onclick="showAchievementDetails('${achievement.id}')"
                          title="${achievement.unlocked ? achievement.description : '🔒 ' + achievement.description}">
@@ -1674,29 +1680,126 @@
         saveSchedule();
     }
 
-    function showAlert(message, type = 'info') {
-        const div = document.createElement('div');
-        div.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${type === 'success' ? 'var(--success)' : 'var(--primary)'};
+    function showAlert(message, type = 'info', title = null) {
+        // Initialize notification container if it doesn't exist
+        let container = document.querySelector('.notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'notification-container';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                pointer-events: none;
+            `;
+            document.body.appendChild(container);
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.style.cssText = `
+            background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' :
+                       type === 'error' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                       type === 'warning' ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
+                       'linear-gradient(135deg, var(--primary), var(--secondary))'};
             color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            z-index: 10000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            animation: slideDown 0.3s ease;
+            padding: 16px 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+            margin-bottom: 12px;
+            max-width: 380px;
+            min-width: 300px;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            pointer-events: auto;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         `;
-        div.textContent = message;
-        document.body.appendChild(div);
+        
+        // Use actual emoji icons
+        const successEmoji = '\u2705'; // Check mark emoji
+        const errorEmoji = '\u274C'; // Cross mark emoji
+        const warningEmoji = '\u26A0'; // Warning emoji
+        const infoEmoji = '\u2139'; // Information emoji
+        
+        const emojiIcons = {
+            success: successEmoji,
+            error: errorEmoji, 
+            warning: warningEmoji,
+            info: infoEmoji
+        };
+        
+        const iconEmoji = emojiIcons[type] || infoEmoji;
+        
+        // Handle multi-line messages and extract title if needed
+        let messageContent = message;
+        let notificationTitle = title;
+        
+        if (!notificationTitle && message.includes('\n')) {
+            const lines = message.split('\n').filter(line => line.trim());
+            if (lines.length > 1) {
+                notificationTitle = lines[0].trim();
+                messageContent = lines.slice(1).join('\n').trim();
+            }
+        }
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="font-size: 18px; flex-shrink: 0; margin-top: 2px;">${iconEmoji}</div>
+                <div style="flex: 1; min-width: 0;">
+                    ${notificationTitle ? `<div style="font-weight: 600; font-size: 15px; margin-bottom: 4px; color: white;">${notificationTitle}</div>` : ''}
+                    <div style="color: rgba(255,255,255,0.95); white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${messageContent}</div>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" style="
+                    background: none;
+                    border: none;
+                    color: rgba(255,255,255,0.7);
+                    font-size: 18px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 4px;
+                    transition: all 0.2s;
+                    flex-shrink: 0;
+                " onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.color='rgba(255,255,255,0.7)'; this.style.background='none'">×</button>
+            </div>
+        `;
+
+        // Add to container
+        container.appendChild(notification);
+        
+        // Trigger slide-in animation
+        requestAnimationFrame(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        });
+
+        // Auto-remove after 5 seconds
         setTimeout(() => {
-            div.style.opacity = '0';
-            div.style.transition = 'opacity 0.3s';
-            setTimeout(() => div.remove(), 300);
-        }, 2000);
+            if (notification.parentElement) {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
     }
 
     window.onpopstate = function() {

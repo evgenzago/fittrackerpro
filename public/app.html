@@ -6,7 +6,7 @@
     <title>FitTrack Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -61,14 +61,12 @@
         <button class="logout-btn" title="Выйти" onclick="logout()">🚪</button>
     </div>
 
-    <div class="header">
-        <div style="width:36px;"></div>
-        <div class="header-center">
-            <h1>FitTrack Pro</h1>
-            <p>Тренировки + Прогресс</p>
+    <nav>
+        <div class="inner">
+            <a href="index.html" class="nav-logo">FitTrack Pro</a>
+            <a href="dev-blog.html" class="nav-link">Dev-блог</a>
         </div>
-        <div style="width:36px;"></div>
-    </div>
+    </nav>
 
     <div class="nav">
         <button class="nav-btn active" onclick="switchTab('calendar')">
@@ -92,10 +90,6 @@
         </div>
         <h2>📆 Расписание</h2>
         <div class="calendar-grid" id="calendar-grid"></div>
-        <div class="achievements-placeholder">
-            <div class="achievements-title">🏅 Ачивменты</div>
-            <p>Скоро здесь появятся ваши достижения: серии тренировок, личные рекорды и прогресс по целям.</p>
-        </div>
         <div class="donate-footer">
             <a href="https://boosty.to/fittrackpro" target="_blank" rel="noopener" class="donate-footer-btn">❤️ Поддержать проект</a>
         </div>
@@ -179,6 +173,13 @@
             <button class="btn btn-primary profile-theme-btn" onclick="openThemeModal()">
                 <span>🎨</span><span>Сменить цвет темы</span>
             </button>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">🏅 Ачивки</div>
+            <div class="achievements-placeholder" id="profile-achievements">
+                <p>Скоро здесь появятся ваши достижения: серии тренировок, личные рекорды и прогресс по целям.</p>
+            </div>
         </div>
 
         <div class="profile-card">

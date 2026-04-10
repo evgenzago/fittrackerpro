@@ -6,7 +6,7 @@
     <title>FitTrack Pro — Тренировки, питание и статистика</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -27,7 +27,7 @@
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg);
             color: var(--text);
             overflow-x: hidden;
@@ -84,16 +84,18 @@
             align-items: center;
         }
         .nav-logo {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: 20px;
             font-weight: 800;
             background: linear-gradient(135deg, var(--primary-light), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .nav-logo:hover {
+            opacity: 0.8;
         }
         .nav-cta {
             padding: 10px 22px;
@@ -104,13 +106,14 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             text-decoration: none;
             display: inline-block;
             transition: all 0.25s;
             box-shadow: 0 0 20px var(--glow);
         }
         .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 0 32px var(--glow); }
+        .nav-link:hover { border-color: var(--primary); color: var(--text); transform: translateY(-1px); }
 
         /* ── Hero ── */
         .hero {
@@ -141,7 +144,7 @@
             animation: fadeUp 0.6s ease both;
         }
         .hero-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: clamp(36px, 5vw, 58px);
             font-weight: 800;
             line-height: 1.1;
@@ -188,7 +191,7 @@
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -206,7 +209,7 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -234,7 +237,7 @@
             z-index: -1;
         }
         .auth-card-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: 22px;
             font-weight: 800;
             margin-bottom: 6px;
@@ -268,7 +271,7 @@
             border-radius: 9px;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .auth-tab-lp.active {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -324,7 +327,7 @@
             border-radius: 12px;
             color: var(--text) !important;
             font-size: 15px;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             transition: border-color 0.2s, box-shadow 0.2s;
             -webkit-appearance: none;
             -webkit-text-fill-color: var(--text) !important;
@@ -348,7 +351,7 @@
             color: white;
             font-size: 15px;
             font-weight: 700;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -368,7 +371,7 @@
             border-top: 1px solid rgba(255,255,255,0.04);
         }
         .tagline-text {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: clamp(22px, 4vw, 38px);
             font-weight: 700;
             color: var(--text-muted);
@@ -389,7 +392,7 @@
             margin-bottom: 16px;
         }
         .section-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: clamp(28px, 4vw, 44px);
             font-weight: 800;
             line-height: 1.15;
@@ -428,7 +431,7 @@
             filter: drop-shadow(0 0 12px var(--glow));
         }
         .feature-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: 18px;
             font-weight: 700;
             margin-bottom: 10px;
@@ -525,7 +528,7 @@
         }
         .free-icon { font-size: 52px; margin-bottom: 20px; display: block; filter: drop-shadow(0 0 20px rgba(16,185,129,0.5)); }
         .free-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: clamp(26px, 4vw, 40px);
             font-weight: 800;
             margin-bottom: 16px;
@@ -562,7 +565,7 @@
             align-items: center;
         }
         .donate-title {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: clamp(24px, 3vw, 36px);
             font-weight: 800;
             margin-bottom: 16px;
@@ -578,7 +581,7 @@
             color: white;
             font-size: 16px;
             font-weight: 700;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
@@ -660,8 +663,8 @@
 <!-- Navbar -->
 <nav>
     <div class="inner">
-        <div class="nav-logo">💪 FitTrack Pro</div>
-        <button class="nav-cta" onclick="scrollToAuth()">Открыть приложение →</button>
+        <a href="index.html" class="nav-logo">FitTrack Pro</a>
+        <a href="dev-blog.html" class="nav-link" style="padding: 10px 18px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-2); text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; transition: all 0.25s;">Dev-блог</a>
     </div>
 </nav>
 
@@ -680,7 +683,6 @@
                 <p class="hero-sub">Тренировки, питание и статистика — в одном месте.<br>Просто. Удобно. Без лишнего.</p>
                 <div class="hero-free">Бесплатно. Навсегда. Без подписок, без скрытых функций, без ограничений.</div>
                 <div class="hero-btns">
-                    <button class="btn-primary-lg" onclick="scrollToAuth()">🚀 Начать бесплатно</button>
                     <a href="#features" class="btn-secondary-lg">Узнать больше ↓</a>
                 </div>
             </div>

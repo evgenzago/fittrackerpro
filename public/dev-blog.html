@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev-блог — FitTrack Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 100px 20px 40px;
+        }
+
+        .blog-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .blog-header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .blog-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .blog-subtitle {
+            font-size: 16px;
+            color: var(--text-2);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .blog-nav {
+            display: flex;
+            justify-content: flex-start;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .blog-nav a {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            color: var(--primary);
+            text-decoration: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.25s;
+        }
+
+        .blog-nav a:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px var(--primary-glow);
+        }
+
+        .blog-nav a.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+            color: white;
+        }
+
+        .blog-posts {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .blog-post {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .blog-post:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 32px var(--primary-glow);
+            transform: translateY(-4px);
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .post-author {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .post-date {
+            font-size: 14px;
+            color: var(--text-2);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .post-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .post-content {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-2);
+            white-space: pre-wrap;
+        }
+
+        .post-content p {
+            margin-bottom: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-2);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 16px;
+            }
+
+            .blog-post {
+                padding: 24px;
+            }
+
+            .post-title {
+                font-size: 20px;
+            }
+
+            .post-content {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="inner">
+            <a href="index.html" class="nav-logo">FitTrack Pro</a>
+            <a href="app.html" class="nav-link">Приложение</a>
+        </div>
+    </nav>
+
+    <div class="blog-container">
+        <div class="blog-header">
+            <h1 class="blog-title">Dev-блог</h1>
+            <p class="blog-subtitle">Мысли о разработке, обзор обновлений и будущее проекта FitTrack Pro</p>
+        </div>
+
+        <div class="blog-posts" id="blog-posts">
+            <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <p class="empty-state-text">Записи скоро появятся...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Посты блога
+        const blogPosts = [
+            {
+                id: 1,
+                author: 'Eugene',
+                date: '2026-04-10',
+                title: 'Привет!',
+                content: 'Хочу поделиться своим проектом — FitTrack Pro. Я сделал его как удобный и понятный инструмент для тех, кто хочет системно подходить к тренировкам и отслеживать свой прогресс без лишней сложности.\n\nВ приложении можно составлять собственные программы тренировок, планировать их по дням в календаре, вести учет выполненных упражнений и анализировать результаты. Есть история тренировок, система достижений и синхронизация данных, чтобы всё было под рукой в любой момент.\n\nЯ постарался сделать сервис максимально простым, но при этом полезным — чтобы он реально помогал держать дисциплину и видеть свой рост.\n\nЕсли интересно — попробуйте и дайте фидбек 🙂'
+            }
+        ];
+
+        function renderBlogPosts() {
+            const container = document.getElementById('blog-posts');
+            
+            if (blogPosts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p class="empty-state-text">Записи скоро появятся...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Сортируем посты по дате (новые сверху)
+            const sortedPosts = [...blogPosts].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = sortedPosts.map(post => `
+                <article class="blog-post">
+                    <div class="post-meta">
+                        <span class="post-author">${post.author}</span>
+                        <span class="post-date">${formatDate(post.date)}</span>
+                    </div>
+                    <h2 class="post-title">${post.title}</h2>
+                    <div class="post-content">${post.content}</div>
+                </article>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('ru-RU', options);
+        }
+
+        // Инициализация
+        renderBlogPosts();
+    </script>
+</body>
+</html>
